@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BaseXX Converter | Binary ↔ Base64/Base32/Base58/Base85 Online Tool</title>
+    <meta
+      name="description"
+      content="무료 온라인 BaseXX 변환기: Binary ↔ Base64/Base32/Base58/Base62/Base85 지원. 텍스트/헥사/바이트 변환, URL-safe Base64, 파일 업로드 및 SEO 최적화 페이지."
+    />
+    <meta
+      name="keywords"
+      content="base64 converter,binary to base64,base64 to binary,base32,base58,base62,base85,온라인 변환기"
+    />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BaseXX Converter - Binary ↔ Base64/Base32/Base58/Base85" />
+    <meta
+      property="og:description"
+      content="한 페이지에서 BaseXX 인코딩/디코딩. Base16, Base32, Base58, Base62, Base64, Base85 지원."
+    />
+    <meta property="og:url" content="https://<YOUR_GITHUB_USERNAME>.github.io/<YOUR_REPO_NAME>/" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BaseXX Converter" />
+    <meta
+      name="twitter:description"
+      content="Binary ↔ BaseXX 변환, URL-safe Base64 포함. GitHub Pages 정적 서비스 지원."
+    />
+
+    <link rel="canonical" href="https://<YOUR_GITHUB_USERNAME>.github.io/<YOUR_REPO_NAME>/" />
+    <link rel="stylesheet" href="./styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "BaseXX Converter",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "description": "Binary, Hex, Text를 Base16/Base32/Base58/Base62/Base64/Base85로 양방향 변환하는 온라인 도구"
+      }
+    </script>
+    <meta name="build-timestamp" content="2026-04-14T03:10:06.045Z" />
+</head>
+  <body>
+    <header class="hero">
+      <h1>BaseXX Converter</h1>
+      <p>Binary ↔ BaseXX (16/32/58/62/64/85) 양방향 변환기</p>
+    </header>
+
+    <main class="container">
+      <section class="controls" aria-label="변환 설정">
+        <label>
+          변환 모드
+          <select id="mode">
+            <option value="toBase">Raw → BaseXX (인코딩)</option>
+            <option value="fromBase">BaseXX → Raw (디코딩)</option>
+          </select>
+        </label>
+
+        <label>
+          입력 포맷
+          <select id="inputType"></select>
+        </label>
+
+        <label>
+          출력 포맷
+          <select id="outputType"></select>
+        </label>
+
+        <label>
+          Base 스킴
+          <select id="baseScheme"></select>
+        </label>
+
+        <div class="checkbox-line">
+          <input type="checkbox" id="strictMode" />
+          <label for="strictMode">Strict 모드 (허용되지 않은 문자 발견 시 실패)</label>
+        </div>
+      </section>
+
+      <section class="io-grid">
+        <article>
+          <h2>입력</h2>
+          <textarea id="input" placeholder="값을 입력하세요"></textarea>
+          <div class="actions">
+            <label class="file-upload">
+              파일 불러오기
+              <input type="file" id="fileInput" />
+            </label>
+            <button id="pasteExample">예시 넣기</button>
+            <button id="clearInput">입력 초기화</button>
+          </div>
+        </article>
+
+        <article>
+          <h2>출력</h2>
+          <textarea id="output" readonly placeholder="결과가 여기에 표시됩니다"></textarea>
+          <div class="actions">
+            <button id="copyOutput">결과 복사</button>
+            <button id="downloadOutput">결과 다운로드</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="status" aria-live="polite" id="status"></section>
+
+      <section class="seo-content">
+        <h2>왜 이 BaseXX Converter를 쓰나요?</h2>
+        <ul>
+          <li>Base64 ↔ Binary 뿐 아니라 Base16/Base32/Base58/Base62/Base85까지 지원</li>
+          <li>텍스트/헥사/바이너리(raw bit string) 입력 모두 처리</li>
+          <li>URL-safe Base64, RFC4648 Base32 등 개발 실무 케이스 반영</li>
+          <li>정적 파일 구조로 GitHub Pages 배포에 최적화</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <small>© 2026 BaseXX Converter. Built for GitHub Pages (/docs).</small>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
