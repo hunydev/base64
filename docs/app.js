@@ -30,11 +30,19 @@ const els = {
   strictMode: document.getElementById('strictMode'),
   status: document.getElementById('status'),
   fileInput: document.getElementById('fileInput'),
+  mimeTypeWrap: document.getElementById('mimeTypeWrap'),
+  mimeType: document.getElementById('mimeType'),
   pasteExample: document.getElementById('pasteExample'),
   clearInput: document.getElementById('clearInput'),
   copyOutput: document.getElementById('copyOutput'),
-  downloadOutput: document.getElementById('downloadOutput')
+  downloadOutput: document.getElementById('downloadOutput'),
+  downloadBinary: document.getElementById('downloadBinary'),
+  previewBinary: document.getElementById('previewBinary'),
+  previewArea: document.getElementById('previewArea'),
+  previewContent: document.getElementById('previewContent')
 };
+
+let decodedBinaryState = null;
 
 function fillSelect(select, options) {
   select.innerHTML = options.map((o) => `<option value="${o.key}">${o.label}</option>`).join('');
@@ -56,10 +64,11 @@ function syncMode() {
     fillSelect(els.outputType, rawTypes);
     els.outputType.value = 'text';
   }
+  syncBinaryActions();
 }
 
 function bindEvents() {
-  ['mode', 'inputType', 'outputType', 'baseScheme', 'input', 'strictMode'].forEach((key) => {
+  ['mode', 'inputType', 'outputType', 'baseScheme', 'input', 'strictMode', 'mimeType'].forEach((key) => {
     els[key].addEventListener('input', key === 'mode' ? () => {
       syncMode();
       convert();
@@ -74,6 +83,15 @@ function bindEvents() {
     const file = e.target.files?.[0];
     if (!file) return;
     const bytes = new Uint8Array(await file.arrayBuffer());
+
+    if (els.mode.value === 'toBase' && (els.baseScheme.value === 'base64' || els.baseScheme.value === 'base64url')) {
+      els.inputType.value = 'binary';
+      els.input.value = [...bytes].map((b) => b.toString(2).padStart(8, '0')).join('');
+      convert();
+      setStatus(`파일 "${file.name}" 업로드 완료. ${els.baseScheme.value.toUpperCase()} 인코딩 결과를 확인하세요.`);
+      return;
+    }
+
     els.input.value = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
     if (els.mode.value !== 'toBase') els.mode.value = 'toBase';
     syncMode();
@@ -112,6 +130,20 @@ function bindEvents() {
     a.download = `converted-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
+  });
+
+  els.downloadBinary.addEventListener('click', () => {
+    if (!decodedBinaryState) return;
+    const a = document.createElement('a');
+    a.href = decodedBinaryState.url;
+    a.download = `decoded-${Date.now()}`;
+    a.click();
+  });
+
+  els.previewBinary.addEventListener('click', () => {
+    if (!decodedBinaryState) return;
+    const { url, mimeType } = decodedBinaryState;
+    renderPreview(url, mimeType);
   });
 }
 
@@ -264,6 +296,7 @@ function decodeBase(input, schemeKey, strict = false) {
 }
 
 function convert() {
+  resetDecodedBinaryState();
   try {
     const mode = els.mode.value;
     const inputType = els.inputType.value;
@@ -279,7 +312,12 @@ function convert() {
       out = encodeBase(bytes, baseScheme);
     } else {
       const bytes = decodeBase(input, baseScheme, strict);
-      out = rawFromBytes(bytes, outputType);
+      if (isBinaryDownloadMode(mode, baseScheme)) {
+        prepareDecodedBinary(bytes, resolveMimeType());
+        out = `디코딩된 바이너리 준비 완료 (${bytes.length} bytes)\n"Binary 다운로드" 버튼을 사용하세요.`;
+      } else {
+        out = rawFromBytes(bytes, outputType);
+      }
     }
 
     els.output.value = out;
@@ -288,11 +326,88 @@ function convert() {
     els.output.value = '';
     setStatus(`오류: ${error.message}`, true);
   }
+  syncBinaryActions();
 }
 
 function setStatus(message, isError = false) {
   els.status.textContent = message;
   els.status.classList.toggle('error', isError);
+}
+
+function isBinaryDownloadMode(mode, scheme) {
+  return mode === 'fromBase' && (scheme === 'base64' || scheme === 'base64url');
+}
+
+function resolveMimeType() {
+  const mime = els.mimeType.value.trim();
+  return mime || 'application/octet-stream';
+}
+
+function syncBinaryActions() {
+  const enabled = isBinaryDownloadMode(els.mode.value, els.baseScheme.value);
+  els.downloadBinary.hidden = !enabled;
+  els.previewBinary.hidden = !enabled;
+  els.mimeTypeWrap.hidden = !enabled;
+  els.downloadOutput.hidden = enabled;
+  els.copyOutput.disabled = enabled;
+}
+
+function resetDecodedBinaryState() {
+  if (decodedBinaryState?.url) URL.revokeObjectURL(decodedBinaryState.url);
+  decodedBinaryState = null;
+  els.previewArea.hidden = true;
+  els.previewContent.innerHTML = '';
+}
+
+function prepareDecodedBinary(bytes, mimeType) {
+  const blob = new Blob([bytes], { type: mimeType });
+  decodedBinaryState = {
+    mimeType,
+    url: URL.createObjectURL(blob)
+  };
+}
+
+function renderPreview(url, mimeType) {
+  els.previewArea.hidden = false;
+  els.previewContent.innerHTML = '';
+
+  const [major] = mimeType.split('/');
+  let node = null;
+
+  if (major === 'image') {
+    node = document.createElement('img');
+    node.src = url;
+    node.alt = 'decoded preview image';
+  } else if (major === 'audio') {
+    node = document.createElement('audio');
+    node.controls = true;
+    node.src = url;
+  } else if (major === 'video') {
+    node = document.createElement('video');
+    node.controls = true;
+    node.src = url;
+  } else if (mimeType === 'application/pdf') {
+    node = document.createElement('iframe');
+    node.src = url;
+    node.title = 'decoded pdf preview';
+    node.style.height = '420px';
+  } else if (mimeType.startsWith('text/')) {
+    node = document.createElement('iframe');
+    node.src = url;
+    node.title = 'decoded text preview';
+    node.style.height = '320px';
+  }
+
+  if (node) {
+    els.previewContent.appendChild(node);
+    setStatus(`미리보기/재생 준비 완료 (${mimeType}).`);
+    return;
+  }
+
+  const info = document.createElement('pre');
+  info.textContent = `이 MIME 타입(${mimeType})은 브라우저 미리보기를 지원하지 않을 수 있습니다.\nBinary 다운로드 버튼을 사용하세요.`;
+  els.previewContent.appendChild(info);
+  setStatus(`미리보기를 지원하지 않는 MIME 타입입니다. 다운로드를 이용하세요.`);
 }
 
 init();
