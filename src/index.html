@@ -74,6 +74,11 @@
           <select id="baseScheme"></select>
         </label>
 
+        <label id="mimeTypeWrap">
+          MIME 타입 (Base64 → Binary)
+          <input id="mimeType" type="text" placeholder="예: image/png, video/mp4, audio/mpeg" />
+        </label>
+
         <div class="checkbox-line">
           <input type="checkbox" id="strictMode" />
           <label for="strictMode">Strict 모드 (허용되지 않은 문자 발견 시 실패)</label>
@@ -97,9 +102,15 @@
         <article>
           <h2>출력</h2>
           <textarea id="output" readonly placeholder="결과가 여기에 표시됩니다"></textarea>
+          <div id="previewArea" class="preview-area" hidden>
+            <h3>미리보기 / 재생</h3>
+            <div id="previewContent"></div>
+          </div>
           <div class="actions">
             <button id="copyOutput">결과 복사</button>
             <button id="downloadOutput">결과 다운로드</button>
+            <button id="downloadBinary" hidden>Binary 다운로드</button>
+            <button id="previewBinary" hidden>미리보기 / 재생</button>
           </div>
         </article>
       </section>
